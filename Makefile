@@ -15,6 +15,16 @@ LDFLAGS := -nostdlib -z max-page-size=0x1000
 
 OBJS := \
 	arch/x86_64/boot.o \
+	arch/x86_64/context_switch.o \
+	arch/x86_64/interrupt.o \
+	arch/x86_64/syscall_entry.o \
+	arch/x86_64/gdt.o \
+	arch/x86_64/user.o \
+	arch/x86_64/user_sysret.o \
+	arch/x86_64/userprog.o \
+	kernel/scheduler.o \
+	kernel/interrupts.o \
+	kernel/syscall.o \
 	kernel/main.o \
 	kernel/memory.o
 
@@ -26,6 +36,27 @@ $(BUILD):
 	@mkdir -p $(BUILD)
 
 arch/x86_64/boot.o: arch/x86_64/boot.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/context_switch.o: arch/x86_64/context_switch.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/interrupt.o: arch/x86_64/interrupt.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/syscall_entry.o: arch/x86_64/syscall_entry.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/gdt.o: arch/x86_64/gdt.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/user.o: arch/x86_64/user.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/userprog.o: arch/x86_64/userprog.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/user_sysret.o: arch/x86_64/user_sysret.S | $(BUILD)
 	$(AS) -m64 -c $< -o $@
 
 kernel/main.o: kernel/main.c | $(BUILD)
