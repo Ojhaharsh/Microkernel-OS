@@ -39,6 +39,10 @@ mb2_header_end:
 _start:
     cli
 
+    /* Save Multiboot magic (EAX) and info pointer (EBX) */
+    mov %eax, mb_magic32
+    mov %ebx, mb_info32
+
     /* Load a minimal GDT with 64-bit code and data descriptors */
     lgdt gdt_descriptor
 
@@ -84,6 +88,9 @@ long_mode_entry:
 
     /* Call C kernel entry */
     .extern kernel_main
+    /* Move saved multiboot values into SysV ABI arg registers */
+    movzx mb_magic32, %esi        /* RSI = magic (zero-extend 32-bit) */
+    mov mb_info32, %edi           /* RDI = info pointer (zero-extend by mov) */
     call kernel_main
 
 .hang:
@@ -108,16 +115,19 @@ gdt_end:
 /* ----------------------- Page tables ------------------------- */
 .section .data
 .align 4096
+.globl pml4
 pml4:
     .quad pdpt + 0x03           /* present | rw */
     .fill 511,8,0
 
 .align 4096
+.globl pdpt
 pdpt:
     .quad pd + 0x03             /* present | rw */
     .fill 511,8,0
 
 .align 4096
+.globl pd
 pd:
     /* 2 MiB identity-mapped page for 0x00000000 - 0x001FFFFF; flags: present|rw|PS */
     .quad 0x0000000000000083
@@ -132,3 +142,12 @@ pd:
 .align 16
 .lcomm stack64, 16384
 .set stack64_top, stack64 + 16384
+
+/* Saved multiboot registers from 32-bit stage */
+.section .data
+.globl mb_info32
+.globl mb_magic32
+mb_info32:
+    .long 0
+mb_magic32:
+    .long 0

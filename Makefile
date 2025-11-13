@@ -9,6 +9,7 @@ ISO_DIR := $(BUILD)/iso
 GRUB_DIR := $(ISO_DIR)/boot/grub
 KERNEL := $(BUILD)/kernel.elf
 ISO := $(BUILD)/microkernel.iso
+QEMU_FLAGS ?=
 
 CFLAGS := -ffreestanding -O2 -Wall -Wextra -m64 -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -mno-red-zone -mno-mmx -mno-sse -mno-avx -mno-80387 -msoft-float -Iinclude
 LDFLAGS := -nostdlib -z max-page-size=0x1000
@@ -21,6 +22,8 @@ OBJS := \
 	arch/x86_64/gdt.o \
 	arch/x86_64/user.o \
 	arch/x86_64/user_sysret.o \
+	arch/x86_64/user_server.o \
+	arch/x86_64/user_client.o \
 	arch/x86_64/userprog.o \
 	kernel/scheduler.o \
 	kernel/interrupts.o \
@@ -61,6 +64,12 @@ arch/x86_64/userprog.o: arch/x86_64/userprog.S | $(BUILD)
 arch/x86_64/user_sysret.o: arch/x86_64/user_sysret.S | $(BUILD)
 	$(AS) -m64 -c $< -o $@
 
+arch/x86_64/user_server.o: arch/x86_64/user_server.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
+arch/x86_64/user_client.o: arch/x86_64/user_client.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
 kernel/main.o: kernel/main.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -77,7 +86,18 @@ $(ISO): $(KERNEL)
 	grub-mkrescue -o $(ISO) $(ISO_DIR)
 
 run: iso
-	qemu-system-x86_64 -cdrom $(ISO) -serial stdio
+	qemu-system-x86_64 -cdrom $(ISO) -serial stdio $(QEMU_FLAGS)
+
+# Headless run (no GUI; serial only)
+.PHONY: run-headless
+run-headless: iso
+	qemu-system-x86_64 -cdrom $(ISO) -serial stdio -display none $(QEMU_FLAGS)
+
+# Run and tee serial output to build/serial.log
+.PHONY: run-log
+run-log: iso
+	@mkdir -p $(BUILD)
+	qemu-system-x86_64 -cdrom $(ISO) -serial stdio -display none $(QEMU_FLAGS) | tee $(BUILD)/serial.log
 
 qemu: all
 	# Direct boot via -kernel is not universally reliable for Multiboot; prefer ISO.

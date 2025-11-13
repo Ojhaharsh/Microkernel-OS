@@ -5,7 +5,7 @@
 .global context_switch
 .type context_switch, @function
 // void context_switch(context_t* old, context_t* new)
-// context_t layout (see scheduler.c): r15,r14,r13,r12,rbx,rbp,rsp,rip
+// context_t layout (see scheduler.c): r15,r14,r13,r12,rbx,rbp,rsp,rip,rdi,rsi,first
 context_switch:
     // If old != NULL, save callee-saved registers, RSP, and caller's return RIP
     test %rdi, %rdi
@@ -21,6 +21,8 @@ context_switch:
     mov %rax, 56(%rdi)
 .Lload:
     // Load new context
+    // Preserve context pointer in r10 for later stores
+    mov %rsi, %r10
     mov 0(%rsi), %r15
     mov 8(%rsi), %r14
     mov 16(%rsi), %r13
@@ -30,12 +32,18 @@ context_switch:
     mov 48(%rsi), %rsp
     // Read saved RIP early before clobbering pointer;
     mov 56(%rsi), %rax
-    // Load argument registers for potential first entry
-    mov 64(%rsi), %rdi
-    mov 72(%rsi), %rdx
-    // Resume: saved RIP is a return address; push and ret
-    push %rax
+    // Conditionally set args on first entry only
+    mov 80(%rsi), %rcx        // first flag
+    test %rcx, %rcx
+    jne .Lskip_args
+    mov 64(%rsi), %rdi        // arg0 (fn)
+    mov 72(%rsi), %rdx        // arg1 (arg)
     mov %rdx, %rsi
+    mov $1, %rcx
+    mov %rcx, 80(%r10)        // mark first=1 using saved context pointer
+.Lskip_args:
+    // Resume: overwrite return address at top of stack and ret
+    mov %rax, (%rsp)
     ret
 
 .size context_switch, .-context_switch
