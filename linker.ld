@@ -6,9 +6,12 @@ SECTIONS
   /* Load the kernel at 1 MiB (typical GRUB load address) */
   . = 0x00100000;
 
+  _kernel_start = .;
+
   /* Ensure the multiboot header is within the first 8 KiB */
   .multiboot : ALIGN(8) {
     KEEP(*(.multiboot))
+    KEEP(*(.multiboot2))
   }
 
   .text : ALIGN(4K) {
@@ -28,4 +31,6 @@ SECTIONS
     *(.bss*)
     *(COMMON)
   }
+
+  _kernel_end = .;
 }

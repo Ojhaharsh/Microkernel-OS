@@ -132,6 +132,11 @@ Create a test user program that prints using write() syscall.
 Milestone:
 ✅ Kernel runs a user process that prints via a syscall.
 
+Notes:
+- Uses x86_64 SYSCALL/SYSRET (not int 0x80) via MSRs: `EFER.SCE`, `STAR`, `LSTAR`, `FMASK`.
+- Entry stub saves RCX/R11, switches to a dedicated kernel stack, calls C dispatcher, returns with `SYSRETQ`.
+- Minimal syscalls: `write`, `yield`, `exit` (serial-only I/O for visibility).
+
 🗓️ Week 6 — IPC & Refinement
 Goal: Implement inter-process communication and refine kernel components.
 
@@ -150,8 +155,29 @@ Write documentation for the kernel’s architecture.
 Optional: Add basic drivers (keyboard, framebuffer).
 
 Milestone:
-✅ Two user programs exchange messages through kernel-managed IPC.
+✅ Two tasks exchange messages through kernel-managed IPC (blocking send/recv).
 Kernel stable and modular.
+
+Design:
+- Per-task single-slot mailbox (bounded, fixed-size messages up to `IPC_MSG_MAX`).
+- Blocking semantics: `ipc_send()` waits until receiver mailbox is empty; `ipc_recv()` waits until a message arrives.
+- Wakeup path: `sched_unblock(dst)` wakes blocked receiver; sender yields to encourage handoff.
+- Critical sections around mailbox fill/empty guarded by `cli/sti` to avoid timer ISR preemption mid-update.
+- Scheduler helpers added: `sched_current_id()`, `sched_block_current()`, `sched_unblock(id)`.
+
+Demo:
+- Two kernel tasks (`ping`, `pong`) exchange a message; serial output shows the flow.
+- Expected serial log snippet:
+   - `[ping] start`
+   - `[pong] start`
+   - `[pong] got hi`
+   - `[ping] sent`
+
+Files:
+- `kernel/ipc.c`, `include/ipc.h` — mailbox IPC.
+- `kernel/scheduler.c`, `arch/x86_64/context_switch.S` — blocking/wakeup + corrected context switch (only sets args on first entry; fixes resume corruption).
+- `kernel/syscall.c`, `arch/x86_64/syscall_entry.S` — syscall infra (Week 5).
+- `kernel/main.c` — initializes interrupts, IPC, and starts ping/pong tasks.
 
 🧱 Directory Structure
 pgsql
@@ -188,4 +214,24 @@ OSDev Wiki — Paging, Interrupts, Syscalls
 Operating Systems: Three Easy Pieces
 
 L4 Microkernel Papers
+
+---
+
+## ▶️ Run Instructions
+
+Build and run from Windows (WSL required):
+
+```bat
+wsl bash -lc "cd '/mnt/c/Users/KIIT/Desktop/Microkernel OS' && make -j && QEMU_AUDIO_DRV=none make run"
+```
+
+Headless (no GUI window, serial only):
+
+```bat
+wsl bash -lc "cd '/mnt/c/Users/KIIT/Desktop/Microkernel OS' && make -j && QEMU_AUDIO_DRV=none qemu-system-x86_64 -cdrom build/microkernel.iso -serial stdio -display none"
+```
+
+Notes:
+- Output is via serial (COM1), visible on your terminal. VGA remains minimal.
+- If you see GTK warnings from QEMU, they’re harmless; use headless mode to suppress.
 
