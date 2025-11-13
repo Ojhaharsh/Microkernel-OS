@@ -10,7 +10,7 @@ GRUB_DIR := $(ISO_DIR)/boot/grub
 KERNEL := $(BUILD)/kernel.elf
 ISO := $(BUILD)/microkernel.iso
 
-CFLAGS := -ffreestanding -O2 -Wall -Wextra -m64 -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -Iinclude
+CFLAGS := -ffreestanding -O2 -Wall -Wextra -m64 -fno-stack-protector -fno-pic -fno-pie -fno-omit-frame-pointer -mno-red-zone -mno-mmx -mno-sse -mno-avx -mno-80387 -msoft-float -Iinclude
 LDFLAGS := -nostdlib -z max-page-size=0x1000
 
 OBJS := \
@@ -25,6 +25,8 @@ OBJS := \
 	kernel/scheduler.o \
 	kernel/interrupts.o \
 	kernel/syscall.o \
+	kernel/ipc.o \
+	kernel/panic.o \
 	kernel/main.o \
 	kernel/memory.o
 
