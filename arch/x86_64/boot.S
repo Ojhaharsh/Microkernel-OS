@@ -10,14 +10,18 @@
 .set MAGIC,    0x1BADB002
 .set CHECKSUM, -(MAGIC + FLAGS)
 
-.section .multiboot
+/* Multiboot2 header for ELF64-friendly boot */
+
+.section .text.boot
+.code32
+
+/* Place multiboot headers at the very beginning */
 .align 4
+multiboot1_header:
 .long MAGIC
 .long FLAGS
 .long CHECKSUM
 
-/* Multiboot2 header for ELF64-friendly boot */
-.section .multiboot2
 .align 8
 mb2_header:
     .long 0xE85250D6            /* magic */
@@ -31,13 +35,16 @@ mb2_header:
     .long 8    /* size */
 mb2_header_end:
 
-.section .text
-.code32
 .globl _start
 .type _start, @function
 
 _start:
     cli
+
+    /* Debug: Very early output to COM1 to confirm we boot */
+    mov $0x3F8, %dx
+    mov $'B', %al
+    out %al, %dx
 
     /* Save Multiboot magic (EAX) and info pointer (EBX) */
     mov %eax, mb_magic32
@@ -77,14 +84,29 @@ _start:
     or $0x80000000, %eax         /* PG */
     mov %eax, %cr0
 
+    /* Debug: Output before ljmp to long mode */
+    mov $0x3F8, %dx
+    mov $'P', %al
+    out %al, %dx
+
     /* Far jump to 64-bit code segment (selector 0x08) */
     ljmp $0x08, $long_mode_entry
 
 /* ----------------------- 64-bit mode ------------------------- */
 .code64
 long_mode_entry:
+    /* Debug: Raw byte to COM1 to confirm we reach 64-bit mode */
+    mov $0x3F8, %dx
+    mov $'L', %al
+    out %al, %dx
+
     /* Set up 64-bit stack */
     mov $stack64_top, %rsp
+
+    /* Debug: Another byte before calling C code */
+    mov $0x3F8, %dx
+    mov $'M', %al
+    out %al, %dx
 
     /* Call C kernel entry */
     .extern kernel_main
