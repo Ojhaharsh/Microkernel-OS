@@ -8,13 +8,13 @@ SECTIONS
 
   _kernel_start = .;
 
-  /* Ensure the multiboot header is within the first 8 KiB */
+  /* Ensure the multiboot header is at the very beginning */
   .multiboot : ALIGN(8) {
     KEEP(*(.multiboot))
     KEEP(*(.multiboot2))
   }
 
-  .text : ALIGN(4K) {
+  .text : {
     KEEP(*(.text.boot))
     *(.text*)
   }

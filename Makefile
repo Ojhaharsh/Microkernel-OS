@@ -24,11 +24,13 @@ OBJS := \
 	arch/x86_64/user_sysret.o \
 	arch/x86_64/user_server.o \
 	arch/x86_64/user_client.o \
+	arch/x86_64/user_keyboard_test.o \
 	arch/x86_64/userprog.o \
 	kernel/scheduler.o \
 	kernel/interrupts.o \
 	kernel/syscall.o \
 	kernel/ipc.o \
+	kernel/keyboard.o \
 	kernel/panic.o \
 	kernel/main.o \
 	kernel/memory.o
@@ -70,6 +72,9 @@ arch/x86_64/user_server.o: arch/x86_64/user_server.S | $(BUILD)
 arch/x86_64/user_client.o: arch/x86_64/user_client.S | $(BUILD)
 	$(AS) -m64 -c $< -o $@
 
+arch/x86_64/user_keyboard_test.o: arch/x86_64/user_keyboard_test.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
 kernel/main.o: kernel/main.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -92,6 +97,11 @@ run: iso
 .PHONY: run-headless
 run-headless: iso
 	qemu-system-x86_64 -cdrom $(ISO) -serial stdio -display none $(QEMU_FLAGS)
+
+# Headless with QEMU debug console to stdio (bypasses serial stdio issues)
+.PHONY: run-debugcon
+run-debugcon: iso
+	qemu-system-x86_64 -cdrom $(ISO) -serial none -debugcon stdio -display none -no-reboot -no-shutdown $(QEMU_FLAGS)
 
 # Run and tee serial output to build/serial.log
 .PHONY: run-log
