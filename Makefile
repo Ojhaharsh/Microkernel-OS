@@ -28,6 +28,7 @@ OBJS := \
 	arch/x86_64/user_shell.o \
 	arch/x86_64/userprog.o \
 	kernel/scheduler.o \
+	kernel/serial.o \
 	kernel/interrupts.o \
 	kernel/syscall.o \
 	kernel/ipc.o \

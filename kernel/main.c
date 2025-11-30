@@ -7,6 +7,9 @@
 #include "ipc.h"
 #include "keyboard.h"
 
+/* Global serial_write provided in kernel/serial.c */
+extern void serial_write(const char* s);
+
 /* Week 6 user-space demo: user entry shims */
 static uint64_t ustack_server_top = 0, ustack_client_top = 0;
 extern void enter_user_mode_syscall(uint64_t rip, uint64_t rsp);
