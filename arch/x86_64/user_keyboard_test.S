@@ -1,8 +1,8 @@
-// Simple keyboard monitor test
+// Unified input test (serial + PS/2)
 .text
 .global user_keyboard_test
 
-// Syscall numbers: 1=write, 2=yield, 3=exit
+// Syscall numbers: 1=write, 2=yield, 3=exit, 6=getchar
 
 user_keyboard_test:
     // Print welcome message
@@ -11,31 +11,45 @@ user_keyboard_test:
     mov $welcome_end - welcome_msg, %rsi
     syscall
 
-    // Loop and yield - let keyboard interrupts show
-    mov $0, %rbx                   // counter
 .Lloop:
-    inc %rbx
-    
-    // Print status every 64 iterations
-    mov %rbx, %rax
-    and $63, %rax                  // Every 64 iterations
-    cmp $0, %rax
-    jne .Lskip_print
-    
+    // Print prompt
     mov $1, %rax                   // SYS_write
-    lea status_msg(%rip), %rdi
-    mov $status_end - status_msg, %rsi
+    lea prompt_msg(%rip), %rdi
+    mov $prompt_end - prompt_msg, %rsi
     syscall
     
-.Lskip_print:
-    // Yield to let interrupts happen
-    mov $2, %rax                   // SYS_yield
+    // Get a character using unified input
+    mov $6, %rax                   // SYS_getchar
     syscall
     
-    // Exit after many iterations
-    cmp $1024, %rbx
-    jl .Lloop
+    // Store the character
+    mov %al, typed_char(%rip)
     
+    // Print "You typed: "
+    mov $1, %rax                   // SYS_write
+    lea echo_msg(%rip), %rdi
+    mov $echo_end - echo_msg, %rsi
+    syscall
+    
+    // Print the character
+    mov $1, %rax                   // SYS_write
+    lea typed_char(%rip), %rdi
+    mov $1, %rsi
+    syscall
+    
+    // Print newline
+    mov $1, %rax                   // SYS_write
+    lea newline(%rip), %rdi
+    mov $1, %rsi
+    syscall
+    
+    // Check for 'q' to quit
+    cmpb $'q', typed_char(%rip)
+    je .Lexit
+    
+    jmp .Lloop
+
+.Lexit:
     mov $1, %rax                   // SYS_write
     lea exit_msg(%rip), %rdi
     mov $exit_end - exit_msg, %rsi
@@ -46,13 +60,24 @@ user_keyboard_test:
 
 .data
 welcome_msg:
-    .asciz "[test] Keyboard monitor - try typing in QEMU window\n"
+    .asciz "[test] Unified keyboard test - type in terminal or QEMU window!\n"
 welcome_end:
 
-status_msg:
-    .asciz "[test] Running... try pressing keys\n"
-status_end:
+prompt_msg:
+    .asciz "Type a key: "
+prompt_end:
+
+echo_msg:
+    .asciz "You typed: '"
+echo_end:
 
 exit_msg:
-    .asciz "[test] Test completed\n"
+    .asciz "Goodbye!\n"
 exit_end:
+
+newline:
+    .asciz "'\n"
+
+.bss
+typed_char:
+    .skip 1
