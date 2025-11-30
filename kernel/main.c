@@ -1,5 +1,19 @@
 #include <stdint.h>
 #include <stddef.h>
+#include "scheduler.h" /* Week 3 (not invoked yet) */
+#include "memory.h"
+#include "interrupts.h"
+#include "syscall.h"
+#include "ipc.h"
+#include "keyboard.h"
+
+/* Week 6 user-space demo: user entry shims */
+static uint64_t ustack_server_top = 0, ustack_client_top = 0;
+extern void enter_user_mode_syscall(uint64_t rip, uint64_t rsp);
+void start_user_server(void* _){ (void)_; extern uint8_t user_server_start; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_server_start, ustack_server_top); for(;;) { __asm__ __volatile__("hlt"); } }
+void start_user_client(void* _){ (void)_; extern uint8_t user_client_start; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_client_start, ustack_client_top); for(;;) { __asm__ __volatile__("hlt"); } }
+void start_keyboard_test(void* _){ (void)_; extern uint8_t user_keyboard_test; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_keyboard_test, ustack_client_top); for(;;) { __asm__ __volatile__("hlt"); } }
+void start_user_shell(void* _){ (void)_; extern uint8_t user_shell_start; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_shell_start, ustack_client_top); for(;;) { __asm__ __volatile__("hlt"); } }
 
 /* Simple VGA text console (80x25, color attribute 0x0F: white on black) */
 static volatile uint16_t* const VGA = (uint16_t*)0xB8000;
@@ -37,7 +51,7 @@ static void console_putc(char c) {
     }
 }
 
-static void console_write(const char* s) {
+void console_write(const char* s) {
     for (; *s; ++s) {
         console_putc(*s);
     }
@@ -80,23 +94,55 @@ static void serial_write(const char* s) {
     for (; *s; ++s) serial_putc(*s);
 }
 
+/* Pass Multiboot context from boot.S */
+extern unsigned int mb_magic32;
+extern unsigned int mb_info32;
+
 void kernel_main(void) {
     serial_init();
+    // Emit a raw byte early to confirm entry
+    outb(0x3F8, 'K');
     serial_write("[kernel] entered long mode\n");
     console_clear();
     console_write("Hello, Kernel\n");
     serial_write("[kernel] printed to VGA\n");
-    /* Week 2: initialize memory subsystem and test a couple of allocations */
-    extern void memory_init(void);
-    extern uint64_t pmm_alloc_2m(void);
-    memory_init();
+    /* Week 2: initialize memory subsystem (parse Multiboot if available) */
+    memory_init((uint64_t)mb_magic32, (uint64_t)mb_info32);
     uint64_t f1 = pmm_alloc_2m();
     uint64_t f2 = pmm_alloc_2m();
     if (f1) serial_write("[pmm] allocated 2MiB frame 1\n");
     if (f2) serial_write("[pmm] allocated 2MiB frame 2\n");
+    serial_write("[pmm] init complete\n");
 
-    /* Hang the CPU until an interrupt arrives to save power */
-    for (;;) {
-        __asm__ __volatile__("hlt");
+    /* Week 4: initialize IDT, PIC, PIT and enable interrupts */
+    interrupts_init();
+    pit_init(100);
+    keyboard_init();
+    serial_input_init(); // Initialize serial input (COM1)
+    __asm__ __volatile__("sti");
+
+    /* Week 5: set up GDT with user segments and TSS, syscalls */
+    extern void gdt_init(void);
+    gdt_init();
+    syscall_init();
+    /* Allow user-mode access to lower 64 MiB (educational simplification) */
+    memory_mark_user_range(0, 64ULL * 1024 * 1024);
+    /* Week 6: IPC demo — user-space client/server using syscalls */
+    ipc_init();
+    scheduler_init();
+    /* Prepare user stacks (2 MiB each) */
+    {
+        uint64_t s = pmm_alloc_2m();
+        if (s) ustack_server_top = s + (2ULL * 1024 * 1024);
+        uint64_t c = pmm_alloc_2m();
+        if (c) ustack_client_top = c + (2ULL * 1024 * 1024);
     }
+    (void)task_create(start_user_server, NULL, 16384);
+    (void)task_create(start_user_shell, NULL, 16384);
+    scheduler_start();
+
+    // Should not return; fallback halt
+    for (;;) { __asm__ __volatile__("hlt"); }
 }
+
+/* ---- Week 3/4 demo task functions removed in favor of user-space demo ---- */
