@@ -179,33 +179,7 @@ Files:
 - `kernel/syscall.c`, `arch/x86_64/syscall_entry.S` — syscall infra (Week 5).
 - `kernel/main.c` — initializes interrupts, IPC, and starts ping/pong tasks.
 
-🧱 Directory Structure
-pgsql
-Copy code
-microkernel/
-├── arch/
-│   └── x86_64/
-│       ├── boot.S
-│       ├── interrupt.S
-│       └── context_switch.S
-├── kernel/
-│   ├── main.c
-│   ├── scheduler.c
-│   ├── syscall.c
-│   ├── memory.c
-│   ├── ipc.c
-│   └── panic.c
-├── include/
-│   ├── kernel.h
-│   ├── task.h
-│   ├── memory.h
-│   ├── syscall.h
-│   └── ipc.h
-├── user/
-│   └── hello_user.c
-├── Makefile
-├── grub.cfg
-└── README.md
+
 🧠 Learning References
 xv6 source + commentary
 
