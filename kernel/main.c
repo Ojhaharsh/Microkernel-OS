@@ -10,8 +10,22 @@
 /* Week 6 user-space demo: user entry shims */
 static uint64_t ustack_server_top = 0, ustack_client_top = 0;
 extern void enter_user_mode_syscall(uint64_t rip, uint64_t rsp);
-void start_user_server(void* _){ (void)_; extern uint8_t user_server_start; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_server_start, ustack_server_top); for(;;) { __asm__ __volatile__("hlt"); } }
-void start_user_client(void* _){ (void)_; extern uint8_t user_client_start; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_client_start, ustack_client_top); for(;;) { __asm__ __volatile__("hlt"); } }
+void start_user_server(void* _){
+    (void)_;
+    extern uint8_t user_server_start;
+    extern void serial_write(const char*);
+    serial_write("[kernel] launching user_server\n");
+    enter_user_mode_syscall((uint64_t)(uintptr_t)&user_server_start, ustack_server_top);
+    for(;;) { __asm__ __volatile__("hlt"); }
+}
+void start_user_client(void* _){
+    (void)_;
+    extern uint8_t user_client_start;
+    extern void serial_write(const char*);
+    serial_write("[kernel] launching user_client\n");
+    enter_user_mode_syscall((uint64_t)(uintptr_t)&user_client_start, ustack_client_top);
+    for(;;) { __asm__ __volatile__("hlt"); }
+}
 void start_keyboard_test(void* _){ (void)_; extern uint8_t user_keyboard_test; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_keyboard_test, ustack_client_top); for(;;) { __asm__ __volatile__("hlt"); } }
 void start_user_shell(void* _){ (void)_; extern uint8_t user_shell_start; enter_user_mode_syscall((uint64_t)(uintptr_t)&user_shell_start, ustack_client_top); for(;;) { __asm__ __volatile__("hlt"); } }
 
@@ -90,9 +104,6 @@ static void serial_putc(char c) {
     outb(COM1 + 0, (uint8_t)c);
 }
 
-static void serial_write(const char* s) {
-    for (; *s; ++s) serial_putc(*s);
-}
 
 /* Pass Multiboot context from boot.S */
 extern unsigned int mb_magic32;
@@ -138,11 +149,10 @@ void kernel_main(void) {
         if (c) ustack_client_top = c + (2ULL * 1024 * 1024);
     }
     (void)task_create(start_user_server, NULL, 16384);
+    (void)task_create(start_user_client, NULL, 16384);
     (void)task_create(start_user_shell, NULL, 16384);
     scheduler_start();
 
     // Should not return; fallback halt
     for (;;) { __asm__ __volatile__("hlt"); }
 }
-
-/* ---- Week 3/4 demo task functions removed in favor of user-space demo ---- */
