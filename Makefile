@@ -25,6 +25,7 @@ OBJS := \
 	arch/x86_64/user_server.o \
 	arch/x86_64/user_client.o \
 	arch/x86_64/user_keyboard_test.o \
+	arch/x86_64/user_shell.o \
 	arch/x86_64/userprog.o \
 	kernel/scheduler.o \
 	kernel/interrupts.o \
@@ -75,6 +76,9 @@ arch/x86_64/user_client.o: arch/x86_64/user_client.S | $(BUILD)
 arch/x86_64/user_keyboard_test.o: arch/x86_64/user_keyboard_test.S | $(BUILD)
 	$(AS) -m64 -c $< -o $@
 
+arch/x86_64/user_shell.o: arch/x86_64/user_shell.S | $(BUILD)
+	$(AS) -m64 -c $< -o $@
+
 kernel/main.o: kernel/main.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -91,6 +95,11 @@ $(ISO): $(KERNEL)
 	grub-mkrescue -o $(ISO) $(ISO_DIR)
 
 run: iso
+	qemu-system-x86_64 -cdrom $(ISO) -serial stdio $(QEMU_FLAGS)
+
+# GUI run (shows QEMU window)
+.PHONY: run-gui
+run-gui: iso
 	qemu-system-x86_64 -cdrom $(ISO) -serial stdio $(QEMU_FLAGS)
 
 # Headless run (no GUI; serial only)
