@@ -1,0 +1,7 @@
+# Build artifacts
+*.o
+*.elf
+*.iso
+
+# Build directory
+/build/-e "*.o\n*.elf\n*.iso\n/build/" 
