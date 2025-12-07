@@ -16,16 +16,12 @@ extern void enter_user_mode_syscall(uint64_t rip, uint64_t rsp);
 void start_user_server(void* _){
     (void)_;
     extern uint8_t user_server_start;
-    extern void serial_write(const char*);
-    serial_write("[kernel] launching user_server\n");
     enter_user_mode_syscall((uint64_t)(uintptr_t)&user_server_start, ustack_server_top);
     for(;;) { __asm__ __volatile__("hlt"); }
 }
 void start_user_client(void* _){
     (void)_;
     extern uint8_t user_client_start;
-    extern void serial_write(const char*);
-    serial_write("[kernel] launching user_client\n");
     enter_user_mode_syscall((uint64_t)(uintptr_t)&user_client_start, ustack_client_top);
     for(;;) { __asm__ __volatile__("hlt"); }
 }
@@ -96,37 +92,20 @@ static void serial_init(void) {
     outb(COM1 + 4, 0x0B);    // IRQs enabled, RTS/DSR set
 }
 
-static int serial_can_tx(void) {
-    const uint16_t COM1 = 0x3F8;
-    return (inb(COM1 + 5) & 0x20) != 0; // Transmitter Holding Register Empty
-}
-
-static void serial_putc(char c) {
-    const uint16_t COM1 = 0x3F8;
-    while (!serial_can_tx()) { }
-    outb(COM1 + 0, (uint8_t)c);
-}
-
-
 /* Pass Multiboot context from boot.S */
 extern unsigned int mb_magic32;
 extern unsigned int mb_info32;
 
 void kernel_main(void) {
     serial_init();
-    // Emit a raw byte early to confirm entry
-    outb(0x3F8, 'K');
-    serial_write("[kernel] entered long mode\n");
+    serial_write("[kernel] Microkernel OS v1.0 starting...\n");
     console_clear();
-    console_write("Hello, Kernel\n");
-    serial_write("[kernel] printed to VGA\n");
+    console_write("Microkernel OS v1.0\n\n");
+    
     /* Week 2: initialize memory subsystem (parse Multiboot if available) */
     memory_init((uint64_t)mb_magic32, (uint64_t)mb_info32);
-    uint64_t f1 = pmm_alloc_2m();
-    uint64_t f2 = pmm_alloc_2m();
-    if (f1) serial_write("[pmm] allocated 2MiB frame 1\n");
-    if (f2) serial_write("[pmm] allocated 2MiB frame 2\n");
-    serial_write("[pmm] init complete\n");
+    (void)pmm_alloc_2m();
+    (void)pmm_alloc_2m();
 
     /* Week 4: initialize IDT, PIC, PIT and enable interrupts */
     interrupts_init();
@@ -141,9 +120,11 @@ void kernel_main(void) {
     syscall_init();
     /* Allow user-mode access to lower 64 MiB (educational simplification) */
     memory_mark_user_range(0, 64ULL * 1024 * 1024);
+    
     /* Week 6: IPC demo — user-space client/server using syscalls */
     ipc_init();
     scheduler_init();
+    
     /* Prepare user stacks (2 MiB each) */
     {
         uint64_t s = pmm_alloc_2m();
@@ -151,9 +132,13 @@ void kernel_main(void) {
         uint64_t c = pmm_alloc_2m();
         if (c) ustack_client_top = c + (2ULL * 1024 * 1024);
     }
+    
+    /* Create user tasks */
     (void)task_create(start_user_server, NULL, 16384);
     (void)task_create(start_user_client, NULL, 16384);
     (void)task_create(start_user_shell, NULL, 16384);
+    
+    serial_write("[kernel] Starting scheduler...\n");
     scheduler_start();
 
     // Should not return; fallback halt
