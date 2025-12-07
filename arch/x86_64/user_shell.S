@@ -94,11 +94,6 @@ user_shell_start:
     lea exit_cmd(%rip), %rsi
     mov %rdx, %rdi
     call strcmp
-    // Debug: print result of strcmp for exit
-    mov $1, %rax
-    lea exit_cmp_msg(%rip), %rdi
-    mov $exit_cmp_end - exit_cmp_msg, %rsi
-    syscall
     test %eax, %eax
     jz .Lexit_shell
 
@@ -145,10 +140,6 @@ user_shell_start:
 
 .Lexit_shell:
     mov $1, %rax                   // SYS_write
-    lea exit_reached_msg(%rip), %rdi
-    mov $exit_reached_end - exit_reached_msg, %rsi
-    syscall
-    mov $1, %rax                   // SYS_write
     lea goodbye_msg(%rip), %rdi
     mov $goodbye_end - goodbye_msg, %rsi
     syscall
@@ -175,12 +166,6 @@ strcmp:
     ret
 
 .data
-exit_cmp_msg:
-    .ascii "[debug] exit strcmp called\n"
-exit_cmp_end:
-exit_reached_msg:
-    .ascii "[debug] .Lexit_shell reached\n"
-exit_reached_end:
 welcome_msg:
     .ascii "Microkernel Shell v1.0\n"
     .ascii "Type 'help' for commands, 'exit' to quit\n\n"

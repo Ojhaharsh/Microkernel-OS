@@ -2,24 +2,37 @@
 
 A minimal **Microkernel Operating System** built from scratch for x86_64 architecture. This project demonstrates core OS concepts including cooperative multitasking, memory management, system calls, and inter-process communication.
 
+> **Documentation Note 📚**
+>
+> *   **Architecture 🏗️** and **Technical Details ⚙️**: See [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md)
+> *   **Building and Running 🚀🏃🏼‍➡️** and **Usage 📝**: See [**docs/USAGE.md**](docs/USAGE.md)
+
 ## Features 👇🏼
 
-### Core Kernel
+<details>
+<summary><strong>Core Kernel</strong></summary>
+
 - **x86_64 Long Mode** - Full 64-bit architecture support
 - **GRUB Multiboot2** - Standard bootloader compatibility
 - **Identity Paging** - Simple memory mapping for lower 64 MiB
 - **Physical Memory Manager** - 2 MiB frame allocator
 - **VGA Text Console** - 80x25 display with color support
 - **Serial Output** - COM1 debugging interface (115200 baud)
+</details>
 
-### Process Management
+<details>
+<summary><strong>Process Management</strong></summary>
+
 - **Cooperative Scheduler** - Round-robin task switching
 - **Task States** - UNUSED, READY, RUNNING, BLOCKED, EXITED
 - **Context Switching** - Full register preservation
 - **Per-Task Stacks** - Isolated kernel and user stacks
 - **Dynamic Task Creation** - Runtime program launching
+</details>
 
-### System Calls
+<details>
+<summary><strong>System Calls</strong></summary>
+
 - **SYSCALL/SYSRET** - Fast x86_64 syscall mechanism
 - **write(1)** - Console and serial output
 - **yield(2)** - Cooperative task switching
@@ -28,80 +41,90 @@ A minimal **Microkernel Operating System** built from scratch for x86_64 archite
 - **recv(5)** - IPC message receiving
 - **getchar(6)** - Unified keyboard/serial input
 - **exec(7)** - Dynamic program execution
+</details>
 
-### Inter-Process Communication
+<details>
+<summary><strong>Inter-Process Communication</strong></summary>
+
 - **Mailbox IPC** - Per-task single-slot messaging
 - **Blocking Semantics** - Tasks block until messages arrive
 - **Server/Client Demo** - Ping-pong message exchange
+</details>
 
-### Input/Output
+<details>
+<summary><strong>Input/Output</strong></summary>
+
 - **PS/2 Keyboard** - Scancode translation with shift support
 - **Serial Input** - COM1 character reception via IRQ4
 - **Unified Input** - Single getchar() interface for both sources
 - **PIC & PIT** - Interrupt management and timer
+</details>
 
-### User Programs
+<details>
+<summary><strong>User Programs</strong></summary>
+
 - **IPC Server** - Receives ping messages, responds with pong
 - **IPC Client** - Sends 5 ping messages, waits for pong replies
 - **Interactive Shell** - Command-line interface with program launching
 - **Keyboard Test** - Interactive input testing program
+</details>
 
 ## Roadmap 🗺️
 
 We are actively working on the following features. Contributions are welcome!
 
-### Phase 1: Memory Management (Next Up)
+<details>
+<summary><strong>Phase 1: Memory Management (Next Up)</strong></summary>
+
 - [ ] **User-Space Allocator**: Implement `malloc` and `free` in `user/lib/malloc.c`.
 - [ ] **Heap Management**: Manage a static heap or request pages from the kernel.
+</details>
 
-### Phase 2: Storage & VFS (Planned)
+<details>
+<summary><strong>Phase 2: Storage & VFS (Planned)</strong></summary>
+
 - [ ] **Virtual File System**: Create a VFS layer with `open`, `read`, `close`.
 - [ ] **InitRD**: Parse Multiboot2 modules to load a TAR RAM disk.
 - [ ] **File Support**: Allow user programs to read text files and scripts.
+</details>
 
-### Phase 3: Graphics (Planned)
+<details>
+<summary><strong>Phase 3: Graphics (Planned)</strong></summary>
+
 - [ ] **Framebuffer**: Switch to VESA/VGA graphics mode.
 - [ ] **Graphics Driver**: Implement `put_pixel` and basic shape drawing.
 - [ ] **GUI**: Build a simple windowing system.
-
-## Architecture 🏗️
-
-Detailed architecture documentation is available in [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md).
-
-## Building and Running 🚀🏃🏼‍➡️
-
-For detailed build instructions, including WSL setup and debugging, see [**docs/USAGE.md**](docs/USAGE.md).
-
-### Quick Start
-```bash
-# Build and run (requires QEMU)
-make run
-```
-
-## Usage 📝
-
-See [**docs/USAGE.md**](docs/USAGE.md) for a complete guide on using the shell, running the IPC demo, and interpreting serial output.
+</details>
 
 ## Implementation Highlights 🎯
 
-### Task Scheduler
+<details>
+<summary><strong>Task Scheduler</strong></summary>
+
 - Cooperative multitasking with explicit yield points
 - Task creation with dynamic stack allocation
 - Blocking/unblocking for synchronization
 - Preference hints for responsive IPC
+</details>
 
-### System Call Mechanism
+<details>
+<summary><strong>System Call Mechanism</strong></summary>
+
 - Uses x86_64 SYSCALL instruction for fast transitions
 - Preserves user context across kernel entry
 - Per-task kernel stacks for isolation
 - Return values in RAX register
+</details>
 
-### IPC Design
+<details>
+<summary><strong>IPC Design</strong></summary>
+
 - Single-slot mailbox per task
 - Synchronous send/receive primitives
 - Sender blocks if receiver mailbox full
 - Receiver blocks if no message available
 - Automatic task wakeup on message delivery
+</details>
 
 ## Educational Value 📚
 
@@ -111,10 +134,6 @@ This project demonstrates:
 3. **OS design patterns** - Scheduler, memory manager, device drivers
 4. **Synchronization** - Blocking IPC, task states, critical sections
 5. **User/kernel separation** - Privilege levels, stack switching, syscalls
-
-## Technical Details ⚙️
-
-For compiler flags, syscall conventions, and task context structures, please refer to [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md).
 
 ## Known Limitations 🐛
 
