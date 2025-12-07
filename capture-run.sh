@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Simple script to run QEMU and capture output using script command
-cd '/mnt/c/Users/KIIT/Desktop/Microkernel OS'
+# Resolve project root dynamically
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+cd "${SCRIPT_DIR}"
 
 echo "Building ISO..."
 make iso CROSS=
@@ -14,6 +16,6 @@ echo "=== CAPTURED OUTPUT ==="
 cat /tmp/qemu-session.log
 echo "=== END OUTPUT ==="
 
-# Copy to Windows location
-cp /tmp/qemu-session.log '/mnt/c/Users/KIIT/Desktop/Microkernel OS/build/serial.log'
+# Copy to build directory
+cp /tmp/qemu-session.log "${SCRIPT_DIR}/build/serial.log"
 echo "Output saved to build/serial.log"
