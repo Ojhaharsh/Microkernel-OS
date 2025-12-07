@@ -15,22 +15,6 @@ typedef struct mailbox_t {
 
 static mailbox_t mboxes[MAX_TASKS];
 
-/* Minimal serial for debugging IPC flow */
-static inline void outb(uint16_t port, uint8_t val) {
-	__asm__ __volatile__("outb %0, %1" : : "a"(val), "Nd"(port));
-}
-static inline uint8_t inb(uint16_t port) {
-	uint8_t ret; __asm__ __volatile__("inb %1, %0" : "=a"(ret) : "Nd"(port)); return ret;
-}
-static int serial_can_tx(void) { return (inb(0x3F8 + 5) & 0x20) != 0; }
-static void serial_putc(char c) { while (!serial_can_tx()) {} outb(0x3F8, (uint8_t)c); }
-static void serial_write(const char* s) { for(;*s;++s) serial_putc(*s); }
-static void serial_write_u32(uint32_t v) {
-	char buf[11]; int i=0; if (v==0){ serial_putc('0'); return; }
-	while (v>0 && i<10) { buf[i++] = (char)('0' + (v%10)); v/=10; }
-	while (i--) serial_putc(buf[i]);
-}
-
 void ipc_init(void) {
 	for (int i = 0; i < MAX_TASKS; ++i) {
 		mboxes[i].full = 0;
@@ -62,10 +46,6 @@ int ipc_send(int dst_task_id, const char* buf, size_t len) {
 	mboxes[dst_task_id].full = 1;
 	__asm__ __volatile__("sti");
 
-	// Debug: log send event
-	serial_write("[ipc] send dst="); serial_write_u32((uint32_t)dst_task_id);
-	serial_write(" from="); serial_write_u32((uint32_t)self); serial_write("\n");
-
 	// Wake receiver if it was blocked waiting to receive, then prefer to run it next
 	sched_unblock(dst_task_id);
 	sched_prefer_next(dst_task_id);
@@ -95,11 +75,6 @@ int ipc_recv(int* from, char* buf, size_t maxlen, size_t* out_len) {
 	// Mark empty and potentially wake any sender waiting on us
 	mboxes[self].full = 0;
 	__asm__ __volatile__("sti");
-
-	// Debug: log recv event
-	serial_write("[ipc] recv self="); serial_write_u32((uint32_t)self);
-	serial_write(" from="); serial_write_u32((uint32_t)mboxes[self].from);
-	serial_write(" len="); serial_write_u32((uint32_t)n); serial_write("\n");
 
 	// Unblock all tasks; simple approach lets senders retry
 	for (int i = 0; i < MAX_TASKS; ++i) sched_unblock(i);
