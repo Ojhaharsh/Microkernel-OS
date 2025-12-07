@@ -6,16 +6,31 @@
 - **GRUB tools** (grub-mkrescue, xorriso)
 - **QEMU** (qemu-system-x86_64)
 
-## Build Instructions
+## Build Instructions (Linux / WSL)
+
+Run these commands in your terminal (or PowerShell if using WSL):
 
 ```bash
-make clean # Clean build
-make       # Build kernel
-make iso   # Create bootable ISO
-make qemu  # Run in QEMU (graphical)
-make run   # Run headless with serial output
-make gdb   # Debug with GDB
+make clean         # Clean build artifacts
+make               # Build kernel only
+make iso           # Create bootable ISO (build/microkernel.iso)
+make run           # Run in QEMU (opens window + serial output)
+make run-headless  # Run in QEMU (terminal only, no window)
+make gdb           # Debug with GDB
 ```
+
+> **WSL Users:** Prepend `wsl` to the commands if running from PowerShell.
+> Example: `wsl make iso`, `wsl make run-headless`
+
+## 🖥️ How to Exit QEMU
+
+When running in **headless mode** (`make run-headless`), QEMU takes over your terminal.
+To exit:
+
+1.  Press **`Ctrl` + `a`** (release keys)
+2.  Press **`x`**
+
+*(If you are stuck, open a new terminal and run `wsl killall qemu-system-x86_64`)*
 ## Output Files
 
 - `build/kernel.elf` - Kernel binary
@@ -24,20 +39,17 @@ make gdb   # Debug with GDB
 
 ## WSL Build (Windows)
 
-If you are using Windows Subsystem for Linux (WSL), you can run these commands from PowerShell:
+If you are using Windows Subsystem for Linux (WSL), the easiest way is to use `wsl` directly:
 
 ```powershell
-# Clean and build
-wsl bash -c "cd '/mnt/c/path/to/project' && CROSS= make clean && CROSS= make iso"
+# 1. Build the ISO
+wsl make iso
 
-# Run in QEMU (graphical)
-wsl bash -c "cd '/mnt/c/path/to/project' && qemu-system-x86_64 -cdrom build/microkernel.iso"
+# 2. Run in Terminal (Headless)
+wsl make run-headless
 
-# View saved output from previous run
-wsl bash -c "cat '/mnt/c/path/to/project/serial.log'"
-
-# Run headless with serial output (auto-closes after 10s)
-wsl bash -c "cd '/mnt/c/path/to/project' && timeout 10 qemu-system-x86_64 -cdrom build/microkernel.iso -serial stdio -display none"
+# 3. Run with GUI (Requires X Server like VcXsrv installed on Windows)
+wsl make run
 ```
 
 ### Automated Testing (Capture Output)

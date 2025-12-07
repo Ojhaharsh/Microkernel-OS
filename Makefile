@@ -1,5 +1,10 @@
-# Toolchain (use a cross-compiler if available)
-CROSS ?= x86_64-elf-
+# Toolchain (auto-detect cross-compiler or fall back to system gcc)
+ifneq (,$(shell which x86_64-elf-gcc 2>/dev/null))
+	CROSS ?= x86_64-elf-
+else
+	CROSS ?=
+endif
+
 CC := $(CROSS)gcc
 LD := $(CROSS)ld
 AS := $(CROSS)gcc
