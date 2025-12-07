@@ -269,22 +269,27 @@ make gdb   # Debug with GDB</code></pre>
                 <!-- SECTION: WSL -->
                 <section id="wsl" class="doc-section">
                     <h1>WSL Setup (Windows)</h1>
-                    <p>If you are using Windows Subsystem for Linux (WSL), you can run these commands from PowerShell:</p>
-                    <pre><code># Clean and build
-wsl bash -c "cd '/mnt/c/path/to/project' && CROSS= make clean && CROSS= make iso"
-
-# Run in QEMU (graphical)
-wsl bash -c "cd '/mnt/c/path/to/project' && qemu-system-x86_64 -cdrom build/microkernel.iso"
-
-# View saved output from previous run
-wsl bash -c "cat '/mnt/c/path/to/project/serial.log'"
-
-# Run headless with serial output (auto-closes after 10s)
-wsl bash -c "cd '/mnt/c/path/to/project' && timeout 10 qemu-system-x86_64 -cdrom build/microkernel.iso -serial stdio -display none"</code></pre>
+                    <p>If you are using Windows Subsystem for Linux (WSL), the easiest way is to use <code>wsl</code> directly:</p>
                     
+                    <pre><code># 1. Build the ISO
+wsl make iso
+
+# 2. Run in Terminal (Headless)
+wsl make run-headless
+
+# 3. Run with GUI (Requires X Server like VcXsrv installed on Windows)
+wsl make run</code></pre>
+
+                    <h3>How to Exit QEMU (Headless)</h3>
+                    <p>When running in headless mode, QEMU takes over your terminal. To exit:</p>
+                    <ol>
+                        <li>Press <strong>Ctrl + a</strong> (release keys)</li>
+                        <li>Press <strong>x</strong></li>
+                    </ol>
+
                     <h3>Automated Testing (Capture Output)</h3>
                     <p>To run the kernel for a fixed time and save the output to a file:</p>
-                    <pre><code>wsl bash -c "cd '/mnt/c/path/to/project' && rm -f serial.log && timeout 15 qemu-system-x86_64 -cdrom build/microkernel.iso -serial file:serial.log -display none; cat serial.log"</code></pre>
+                    <pre><code>wsl bash -c "timeout 15 qemu-system-x86_64 -cdrom build/microkernel.iso -serial file:serial.log -display none; cat serial.log"</code></pre>
                     <p><em>Note: The "terminating on signal 15" message is normal. It means the timeout command successfully stopped QEMU after the specified duration.</em></p>
                 </section>
 
