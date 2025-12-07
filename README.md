@@ -1,4 +1,4 @@
-# Microkernel OS - Educational x86_64 Kernel
+# Microkernel OS - x86_64 Kernel
 
 A minimal **Microkernel Operating System** built from scratch for x86_64 architecture. This project demonstrates core OS concepts including cooperative multitasking, memory management, system calls, and inter-process communication.
 
