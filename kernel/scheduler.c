@@ -87,7 +87,7 @@ static int pick_next(void) {
 	int start = (current + 1) % task_count;
 	for (int i = 0; i < task_count; ++i) {
 		int idx = (start + i) % task_count;
-		if (tasks[idx].state != TASK_EXITED && tasks[idx].state != TASK_BLOCKED) return idx;
+		if (tasks[idx].state == TASK_READY) return idx;
 	}
 	return -1;
 }
@@ -177,6 +177,4 @@ void sched_remove_exited(void) {
         }
     }
 }
-
-#define TASK_UNUSED 0 // Unused task state
 
