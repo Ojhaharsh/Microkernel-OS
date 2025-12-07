@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation | Microkernel OS</title>
+    <link rel="stylesheet" href="styles_pro.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Layout & Structure */
+        body {
+            overflow: hidden; /* Prevent body scroll, handle in containers */
+        }
+
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: calc(100vh - 70px);
+            margin-top: 70px; /* Push below fixed header */
+        }
+
+        /* Sidebar Navigation */
+        .docs-sidebar {
+            background: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1.5rem; /* Reduced side padding */
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .docs-nav-group {
+            margin-bottom: 2rem;
+        }
+
+        .docs-nav-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+            padding-left: 1rem;
+        }
+
+        .docs-nav-link {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: var(--text-main);
+            font-size: 0.9rem;
+            opacity: 0.7;
+            border-left: 2px solid transparent; /* Border marker */
+            transition: all 0.2s ease;
+            text-decoration: none;
+            margin-bottom: 0.1rem;
+        }
+
+        .docs-nav-link:hover {
+            color: var(--primary-color);
+            opacity: 1;
+            background: transparent; /* No bg on hover */
+        }
+
+        .docs-nav-link.active {
+            background: transparent; /* Remove blocky background */
+            color: var(--primary-color);
+            opacity: 1;
+            font-weight: 600;
+            border-left-color: var(--primary-color); /* Clean left marker */
+            background: linear-gradient(90deg, rgba(127, 90, 240, 0.1) 0%, transparent 100%); /* Subtle fade */
+        }
+
+        /* Main Content Area */
+        .docs-main-wrapper {
+            height: 100%;
+            overflow-y: auto;
+            position: relative;
+            background-color: var(--bg-color);
+        }
+
+        .docs-content {
+            padding: 4rem 5rem;
+            max-width: 900px;
+            margin: 0 auto;
+            min-height: calc(100% - 100px); /* Ensure footer pushes down */
+        }
+
+        /* Section Animation & Visibility */
+        .doc-section {
+            display: none;
+            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-bottom: none; /* Override global section border */
+            padding: 0; /* Override global section padding */
+        }
+
+        .doc-section.active {
+            display: block;
+        }
+
+        @keyframes slideUpFade {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* Typography & Elements */
+        .markdown-body h1 { 
+            font-size: 2.5rem; 
+            margin-bottom: 1.5rem; 
+            padding-bottom: 1rem; 
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        
+        .markdown-body h2 { 
+            font-size: 1.75rem; 
+            margin-top: 3rem; 
+            margin-bottom: 1.2rem; 
+            color: var(--text-main);
+        }
+        
+        .markdown-body h3 { 
+            font-size: 1.3rem; 
+            margin-top: 2rem; 
+            margin-bottom: 1rem; 
+            color: var(--text-main);
+        }
+        
+        .markdown-body p { 
+            margin-bottom: 1.5rem; 
+            line-height: 1.7; 
+            color: #a2aabc; 
+            font-size: 1.05rem;
+        }
+        
+        .markdown-body ul { 
+            margin-bottom: 1.5rem; 
+            padding-left: 1.5rem; 
+            color: #a2aabc; 
+        }
+        
+        .markdown-body li { 
+            margin-bottom: 0.5rem; 
+            line-height: 1.6;
+        }
+        
+        .markdown-body code {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            color: var(--primary-color);
+        }
+
+        .markdown-body pre {
+            background: #0d1117;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            padding: 0;
+            color: #e6edf3;
+        }
+
+        /* Footer in Docs */
+        .docs-footer {
+            margin-top: 4rem;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1024px) {
+            .docs-layout { grid-template-columns: 240px 1fr; }
+            .docs-content { padding: 3rem; }
+        }
+
+        @media (max-width: 768px) {
+            body { overflow: auto; }
+            .docs-layout { grid-template-columns: 1fr; height: auto; }
+            .docs-sidebar { display: none; } /* Mobile menu needed */
+            .docs-content { padding: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <div class="nav-content">
+                <a href="index_pro.html" class="logo">MICROKERNEL_OS</a>
+                <div class="nav-links">
+                    <a href="index_pro.html#architecture">Architecture</a>
+                    <a href="index_pro.html#code">Source</a>
+                    <a href="index_pro.html#guide">Guide</a>
+                    <a href="https://github.com/Ojhaharsh/Microkernel-OS" target="_blank" class="btn-github">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="docs-layout">
+        <aside class="docs-sidebar">
+            <div class="docs-nav-group">
+                <div class="docs-nav-title">Getting Started</div>
+                <a href="#building" class="docs-nav-link active" onclick="switchTab('building')">Building & Running</a>
+                <a href="#wsl" class="docs-nav-link" onclick="switchTab('wsl')">WSL Setup</a>
+                <a href="#troubleshooting" class="docs-nav-link" onclick="switchTab('troubleshooting')">Troubleshooting</a>
+                <a href="#usage" class="docs-nav-link" onclick="switchTab('usage')">Shell Usage</a>
+            </div>
+            <div class="docs-nav-group">
+                <div class="docs-nav-title">Architecture</div>
+                <a href="#components" class="docs-nav-link" onclick="switchTab('components')">Kernel Components</a>
+                <a href="#memory" class="docs-nav-link" onclick="switchTab('memory')">Memory Map</a>
+                <a href="#scheduler" class="docs-nav-link" onclick="switchTab('scheduler')">Task Scheduler</a>
+                <a href="#syscalls" class="docs-nav-link" onclick="switchTab('syscalls')">System Calls</a>
+                <a href="#ipc" class="docs-nav-link" onclick="switchTab('ipc')">IPC Design</a>
+                <a href="#technical" class="docs-nav-link" onclick="switchTab('technical')">Technical Details</a>
+            </div>
+        </aside>
+
+        <div class="docs-main-wrapper">
+            <main class="docs-content markdown-body">
+                
+                <!-- SECTION: Building -->
+                <section id="building" class="doc-section active">
+                    <h1>Building and Running</h1>
+                    <p>Everything you need to compile and launch the kernel.</p>
+
+                    <h2>Prerequisites</h2>
+                    <ul>
+                        <li><strong>GCC</strong> (native x86_64 or cross-compiler)</li>
+                        <li><strong>GNU Make</strong></li>
+                        <li><strong>GRUB tools</strong> (grub-mkrescue, xorriso)</li>
+                        <li><strong>QEMU</strong> (qemu-system-x86_64)</li>
+                    </ul>
+
+                    <h2>Build Instructions</h2>
+                    <pre><code>make clean # Clean build
+make       # Build kernel
+make iso   # Create bootable ISO
+make qemu  # Run in QEMU (graphical)
+make run   # Run headless with serial output
+make gdb   # Debug with GDB</code></pre>
+
+                    <h2>Output Files</h2>
+                    <ul>
+                        <li><code>build/kernel.elf</code> - Kernel binary</li>
+                        <li><code>build/microkernel.iso</code> - Bootable ISO image</li>
+                        <li><code>serial.log</code> - Serial output capture (when running with -serial file:serial.log)</li>
+                    </ul>
+                </section>
+
+                <!-- SECTION: WSL -->
+                <section id="wsl" class="doc-section">
+                    <h1>WSL Setup (Windows)</h1>
+                    <p>If you are using Windows Subsystem for Linux (WSL), you can run these commands from PowerShell:</p>
+                    <pre><code># Clean and build
+wsl bash -c "cd '/mnt/c/path/to/project' && CROSS= make clean && CROSS= make iso"
+
+# Run in QEMU (graphical)
+wsl bash -c "cd '/mnt/c/path/to/project' && qemu-system-x86_64 -cdrom build/microkernel.iso"
+
+# View saved output from previous run
+wsl bash -c "cat '/mnt/c/path/to/project/serial.log'"
+
+# Run headless with serial output (auto-closes after 10s)
+wsl bash -c "cd '/mnt/c/path/to/project' && timeout 10 qemu-system-x86_64 -cdrom build/microkernel.iso -serial stdio -display none"</code></pre>
+                    
+                    <h3>Automated Testing (Capture Output)</h3>
+                    <p>To run the kernel for a fixed time and save the output to a file:</p>
+                    <pre><code>wsl bash -c "cd '/mnt/c/path/to/project' && rm -f serial.log && timeout 15 qemu-system-x86_64 -cdrom build/microkernel.iso -serial file:serial.log -display none; cat serial.log"</code></pre>
+                    <p><em>Note: The "terminating on signal 15" message is normal. It means the timeout command successfully stopped QEMU after the specified duration.</em></p>
+                </section>
+
+                <!-- SECTION: Troubleshooting -->
+                <section id="troubleshooting" class="doc-section">
+                    <h1>Troubleshooting</h1>
+                    <p><strong>Problem:</strong> <code>make: command not found</code><br>
+                    <strong>Solution:</strong> Ensure you are running inside WSL or have Make installed.</p>
+
+                    <p><strong>Problem:</strong> QEMU not found<br>
+                    <strong>Solution:</strong> Install in WSL: <code>sudo apt-get install qemu-system-x86</code></p>
+
+                    <p><strong>Problem:</strong> "GTK cannot open display"<br>
+                    <strong>Solution:</strong> You are trying to run graphical QEMU from a headless WSL instance. Use the headless command (serial output) or install a generic X server for Windows (like VcXsrv).</p>
+                </section>
+
+                <!-- SECTION: Usage -->
+                <section id="usage" class="doc-section">
+                    <h1>Shell Usage</h1>
+                    <h3>Interactive Shell</h3>
+                    <p>The shell starts automatically and supports these commands:</p>
+                    <pre><code>shell> help              # Show available commands
+shell> server            # Launch IPC server
+shell> client            # Launch IPC client
+shell> keyboard_test     # Test keyboard input
+shell> exit              # Exit shell</code></pre>
+
+                    <h3>IPC Demo</h3>
+                    <p>The kernel automatically launches the IPC server and client at boot. You'll see:</p>
+                    <pre><code>[client] start
+[server] got ping 1
+[client] got pong 1
+...</code></pre>
+                </section>
+
+                <!-- SECTION: Components -->
+                <section id="components" class="doc-section">
+                    <h1>Kernel Components</h1>
+                    <pre><code>kernel/
+├── main.c          - Kernel entry point and initialization
+├── scheduler.c     - Cooperative task scheduler
+├── memory.c        - Physical memory manager
+├── syscall.c       - System call dispatcher
+├── ipc.c           - Mailbox-based messaging
+├── interrupts.c    - IDT and interrupt handlers
+├── keyboard.c      - PS/2 keyboard driver
+├── serial.c        - Serial I/O functions
+└── panic.c         - Kernel panic handler
+
+arch/x86_64/
+├── boot.S          - Multiboot2 header and bootstrap
+├── gdt.S           - GDT and TSS setup
+├── context_switch.S - Task context switching
+├── syscall_entry.S - System call entry point
+├── interrupt.S     - Interrupt stub handlers
+├── user_*.S        - User-space programs
+└── userprog.S      - User-mode entry helpers
+
+include/
+├── scheduler.h     - Task management API
+├── memory.h        - Memory allocator API
+├── syscall.h       - Syscall numbers and interface
+├── ipc.h           - IPC function declarations
+├── interrupts.h    - Interrupt setup API
+└── keyboard.h      - Keyboard driver API</code></pre>
+                </section>
+
+                <!-- SECTION: Memory -->
+                <section id="memory" class="doc-section">
+                    <h1>Memory Map</h1>
+                    <pre><code>0x0000000000000000 - 0x0000000004000000  : Identity-mapped (64 MiB)
+0x0000000000100000 - kernel .text/.data  : Kernel code and data
+0x00000000000B8000                       : VGA text buffer
+Higher half                              : User stacks and heaps</code></pre>
+                </section>
+
+                <!-- SECTION: Scheduler -->
+                <section id="scheduler" class="doc-section">
+                    <h1>Task Scheduler</h1>
+                    <ul>
+                        <li>Cooperative multitasking with explicit yield points</li>
+                        <li>Task creation with dynamic stack allocation</li>
+                        <li>Blocking/unblocking for synchronization</li>
+                        <li>Preference hints for responsive IPC</li>
+                    </ul>
+                </section>
+
+                <!-- SECTION: Syscalls -->
+                <section id="syscalls" class="doc-section">
+                    <h1>System Call Mechanism</h1>
+                    <ul>
+                        <li>Uses x86_64 SYSCALL instruction for fast transitions</li>
+                        <li>Preserves user context across kernel entry</li>
+                        <li>Per-task kernel stacks for isolation</li>
+                        <li>Return values in RAX register</li>
+                    </ul>
+                </section>
+
+                <!-- SECTION: IPC -->
+                <section id="ipc" class="doc-section">
+                    <h1>IPC Design</h1>
+                    <ul>
+                        <li>Single-slot mailbox per task</li>
+                        <li>Synchronous send/receive primitives</li>
+                        <li>Sender blocks if receiver mailbox full</li>
+                        <li>Receiver blocks if no message available</li>
+                        <li>Automatic task wakeup on message delivery</li>
+                    </ul>
+                </section>
+
+                <!-- SECTION: Technical -->
+                <section id="technical" class="doc-section">
+                    <h1>Technical Details</h1>
+                    
+                    <h3>Compiler Flags</h3>
+                    <pre><code>-ffreestanding -O2 -Wall -Wextra -m64
+-fno-stack-protector -fno-pic -fno-pie
+-mno-red-zone -mno-mmx -mno-sse -mno-avx
+-mno-80387 -msoft-float</code></pre>
+
+                    <h3>Syscall Convention</h3>
+                    <ul>
+                        <li><strong>RAX:</strong> syscall number</li>
+                        <li><strong>RDI:</strong> arg0</li>
+                        <li><strong>RSI:</strong> arg1</li>
+                        <li><strong>Return:</strong> RAX</li>
+                    </ul>
+
+                    <h3>Task Context Structure</h3>
+                    <pre><code>struct context_t {
+    uint64_t r15, r14, r13, r12, rbx, rbp, rsp;
+    void* rip;
+    uint64_t rdi, rsi;
+    uint64_t first;  // First-time flag
+};</code></pre>
+                </section>
+
+                <div class="docs-footer">
+                    <p>Microkernel OS Project • MIT License • Built for Education</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Prevent default anchor jump behavior
+            event.preventDefault();
+
+            // Update Sidebar Active State
+            document.querySelectorAll('.docs-nav-link').forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('href') === '#' + tabId) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Hide all sections
+            document.querySelectorAll('.doc-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected section with animation
+            const target = document.getElementById(tabId);
+            if(target) {
+                target.classList.add('active');
+                // Scroll to top of content area
+                document.querySelector('.docs-main-wrapper').scrollTop = 0;
+            }
+        }
+    </script>
+</body>
+</html>

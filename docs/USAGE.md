@@ -108,12 +108,3 @@ Connect to serial output for debugging:
 ```bash
 qemu-system-x86_64 -cdrom build/microkernel.iso -serial stdio
 ```
-
-## Known Limitations 🐛
-
-- No process isolation (all tasks share address space)
-- No dynamic memory allocator (kmalloc only)
-- Fixed maximum of 8 tasks
-- No filesystem or persistent storage
-- Single-slot IPC (no message queues)
-- Cooperative scheduling only (no preemption)
