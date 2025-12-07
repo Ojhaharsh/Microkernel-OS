@@ -1,6 +1,10 @@
 #include <stdint.h>
 #include "interrupts.h"
 
+// External handlers
+extern void keyboard_irq_handler(void);
+extern void serial_irq_handler(void);
+
 // IDT entry (64-bit interrupt gate)
 typedef struct __attribute__((packed)) {
     uint16_t offset_low;

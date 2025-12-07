@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microkernel OS | Build Your Own x86_64 Kernel</title>
+    <meta name="description" content="A professional-grade educational microkernel. Learn OS development by building a real x86_64 system with IPC, scheduling, and syscalls.">
+    <link rel="stylesheet" href="styles_pro.css">
+    <link rel="stylesheet" href="styles_sim.css">
+    <link rel="stylesheet" href="styles_api.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <div class="nav-content">
+                <a href="#" class="logo">MICROKERNEL_OS</a>
+                <div class="nav-links">
+                    <a href="#architecture">Architecture</a>
+                    <a href="#code">Source</a>
+                    <a href="#guide">Guide</a>
+                    <a href="https://github.com/Ojhaharsh/Microkernel-OS/issues" target="_blank" class="btn-github" style="margin-right: 0.5rem;">
+                        Contribute
+                    </a>
+                    <a href="https://github.com/Ojhaharsh/Microkernel-OS" target="_blank" class="btn-github">
+                        <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                        </svg>
+                        Star on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <div class="hero-badge">v1.0.0 Stable • x86_64</div>
+                    <h1>A simple <span style="background: linear-gradient(to right, #ff9a9e, #fad0c4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">x86_64 microkernel</span><br>for educational study.</h1>
+                    <p>A complete, functional microkernel written in C from scratch. Features cooperative multitasking, mailbox IPC, and a real user shell.</p>
+                    
+                    <div class="hero-cta">
+                        <a href="https://github.com/Ojhaharsh/Microkernel-OS/archive/refs/heads/main.zip" class="btn btn-primary">
+                            Download Source
+                        </a>
+                        <a href="docs.html" class="btn btn-secondary">
+                            Read the Docs
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="terminal-window">
+                        <div class="terminal-header">
+                            <div class="dots">
+                                <div class="dot red"></div>
+                                <div class="dot yellow"></div>
+                                <div class="dot green"></div>
+                            </div>
+                            <div class="terminal-title">qemu-system-x86_64</div>
+                        </div>
+                        <div class="terminal-body" id="typewriter">
+                            <span class="prompt">$</span> make run<br>
+                            [KERNEL] Booting Microkernel OS...<br>
+                            [KERNEL] Initializing GDT... OK<br>
+                            [KERNEL] Initializing IDT... OK<br>
+                            [KERNEL] Memory: 128MB detected<br>
+                            [SCHED] Starting task scheduler...<br>
+                            [USER] Shell started. PID: 1<br>
+                            <br>
+                            <span class="prompt">microkernel></span> <span class="cursor">_</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>&lt; 1s</h3>
+                    <p>Build Time</p>
+                </div>
+                <div class="stat-item">
+                    <h3>7</h3>
+                    <p>System Calls</p>
+                </div>
+                <div class="stat-item">
+                    <h3>~15KB</h3>
+                    <p>Kernel Size</p>
+                </div>
+                <div class="stat-item">
+                    <h3>100%</h3>
+                    <p>Educational</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="simulation" class="simulation-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Live Kernel Simulation</h2>
+                <p>Visualizing the Cooperative Scheduler & IPC in real-time.</p>
+            </div>
+            <div class="sim-dashboard">
+                <!-- CPU Core -->
+                <div class="sim-cpu" id="cpu-container">
+                    <div class="sim-label">CPU CORE 0</div>
+                    <div id="cpu-task" class="task-card">IDLE</div>
+                </div>
+    
+                <!-- Queues -->
+                <div class="sim-queues">
+                    <div class="queue-box">
+                        <div class="sim-label">READY QUEUE</div>
+                        <div id="ready-queue" class="task-list"></div>
+                    </div>
+                    <div class="queue-box">
+                        <div class="sim-label">BLOCKED (WAITING)</div>
+                        <div id="blocked-queue" class="task-list"></div>
+                    </div>
+                </div>
+    
+                <!-- Log -->
+                <div class="sim-log" id="sim-log">
+                    <div class="log-entry">System initialized...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="architecture">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 4rem;">
+                <h2>System Architecture</h2>
+                <p>A microkernel design separating mechanism from policy.</p>
+            </div>
+            
+            <div class="arch-diagram">
+                <!-- Ring 3 -->
+                <div class="layer">
+                    <div class="layer-label">RING 3<br>USER SPACE</div>
+                    <div class="components">
+                        <div class="comp">Shell</div>
+                        <div class="comp">IPC Server</div>
+                        <div class="comp">IPC Client</div>
+                        <div class="comp">User Lib</div>
+                    </div>
+                </div>
+
+                <div class="arrow-down">⬇⬆ SYSCALL / SYSRET</div>
+
+                <!-- Ring 0 -->
+                <div class="layer" style="border-color: var(--primary-color); background: rgba(127, 90, 240, 0.05);">
+                    <div class="layer-label" style="color: var(--primary-color);">RING 0<br>KERNEL</div>
+                    <div class="components">
+                        <div class="comp">Syscall Dispatcher</div>
+                        <div class="comp">Scheduler</div>
+                        <div class="comp">IPC Mailbox</div>
+                        <div class="comp">PMM / VMM</div>
+                    </div>
+                </div>
+
+                <div class="arrow-down">⬇⬆ INTERRUPTS</div>
+
+                <!-- Hardware -->
+                <div class="layer">
+                    <div class="layer-label">HARDWARE</div>
+                    <div class="components">
+                        <div class="comp">CPU (x86_64)</div>
+                        <div class="comp">RAM</div>
+                        <div class="comp">PS/2 Keyboard</div>
+                        <div class="comp">Serial Port</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="code">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 4rem;">
+                <h2>Clean, Readable C Code</h2>
+                <p>Standard C99 and Assembly.</p>
+            </div>
+
+            <div class="code-showcase">
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('ipc')">ipc.c</button>
+                    <button class="tab" onclick="showTab('sched')">scheduler.c</button>
+                    <button class="tab" onclick="showTab('sys')">syscall.c</button>
+                </div>
+                <div class="code-content">
+                    <button class="copy-btn" onclick="copyCode()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy
+                    </button>
+                    <pre id="code-ipc" style="display:block;"><code><span class="keyword">void</span> <span class="function">ipc_send</span>(task_t *sender, <span class="keyword">int</span> target_tid, <span class="keyword">const char</span> *msg, <span class="keyword">size_t</span> len) {
+    task_t *target = &tasks[target_tid];
+    
+    <span class="comment">// Block sender until mailbox is empty (Synchronization)</span>
+    <span class="keyword">while</span> (target->mailbox.occupied) {
+        sender->state = TASK_BLOCKED;
+        <span class="function">sched_yield</span>();
+    }
+    
+    <span class="comment">// Copy message to target's mailbox</span>
+    <span class="function">memcpy</span>(target->mailbox.buffer, msg, len);
+    target->mailbox.occupied = <span class="keyword">true</span>;
+    
+    <span class="comment">// Wake receiver if it was waiting</span>
+    <span class="keyword">if</span> (target->state == TASK_BLOCKED) {
+        target->state = TASK_READY;
+    }
+}</code></pre>
+                    <pre id="code-sched" style="display:none;"><code><span class="keyword">task_t</span>* <span class="function">pick_next_task</span>() {
+    <span class="comment">// Simple Round-Robin Scheduler</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = 0; i < MAX_TASKS; i++) {
+        current_task_idx = (current_task_idx + 1) % MAX_TASKS;
+        task_t *t = &tasks[current_task_idx];
+        
+        <span class="keyword">if</span> (t->state == TASK_READY) {
+            t->state = TASK_RUNNING;
+            <span class="keyword">return</span> t;
+        }
+    }
+    <span class="keyword">return</span> &idle_task;
+}</code></pre>
+                    <pre id="code-sys" style="display:none;"><code><span class="keyword">void</span> <span class="function">syscall_handler</span>(uint64_t syscall_num, ...) {
+    <span class="comment">// Fast SYSCALL instruction entry point</span>
+    <span class="keyword">switch</span> (syscall_num) {
+        <span class="keyword">case</span> SYS_WRITE:
+            <span class="function">sys_write</span>(arg1, arg2, arg3);
+            <span class="keyword">break</span>;
+        <span class="keyword">case</span> SYS_SEND:
+            <span class="function">sys_send</span>(arg1, arg2, arg3);
+            <span class="keyword">break</span>;
+        <span class="keyword">case</span> SYS_YIELD:
+            <span class="function">sched_yield</span>();
+            <span class="keyword">break</span>;
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="api">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 4rem;">
+                <h2>System Call API</h2>
+                <p>Current implementation details (v1.0.0).</p>
+            </div>
+            <div class="api-table-wrapper">
+                <table class="api-table">
+                    <thead>
+                        <tr>
+                            <th>Syscall</th>
+                            <th>RAX (ID)</th>
+                            <th>RDI (Arg 1)</th>
+                            <th>RSI (Arg 2)</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>sys_write</code></td>
+                            <td>1</td>
+                            <td>buffer</td>
+                            <td>length</td>
+                            <td>Write to serial/console (stdout implicit)</td>
+                        </tr>
+                        <tr>
+                            <td><code>sys_yield</code></td>
+                            <td>2</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>Voluntarily give up CPU time</td>
+                        </tr>
+                        <tr>
+                            <td><code>sys_exit</code></td>
+                            <td>3</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>Terminate current task</td>
+                        </tr>
+                        <tr>
+                            <td><code>sys_send</code></td>
+                            <td>4</td>
+                            <td>packet_ptr</td>
+                            <td>-</td>
+                            <td>Send IPC message (via <code>ipc_packet_t*</code>)</td>
+                        </tr>
+                        <tr>
+                            <td><code>sys_recv</code></td>
+                            <td>5</td>
+                            <td>buffer</td>
+                            <td>maxlen</td>
+                            <td>Receive IPC message (blocking)</td>
+                        </tr>
+                        <tr>
+                            <td><code>sys_getchar</code></td>
+                            <td>6</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>Read char from keyboard (blocking)</td>
+                        </tr>
+                        <tr>
+                            <td><code>sys_exec</code></td>
+                            <td>7</td>
+                            <td>prog_name</td>
+                            <td>-</td>
+                            <td>Launch program by name (e.g. "shell")</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="guide">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+                <h2>Quick Start Guide</h2>
+                <div class="terminal-window" style="padding: 0.5rem 1rem; min-height: auto; box-shadow: none; border: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-size: 0.8rem;">Requirements: GCC, Make, QEMU</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
+                <div style="background: var(--surface-color); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="color: var(--primary-color); font-weight: 700; font-size: 1.2rem; margin-bottom: 1rem;">01. Clone</div>
+                    <code style="background: var(--bg-color); padding: 0.5rem; display: block; border-radius: 4px; font-family: var(--font-mono); font-size: 0.8rem;">git clone https://github.com/Ojhaharsh/Microkernel-OS.git</code>
+                </div>
+                <div style="background: var(--surface-color); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="color: var(--primary-color); font-weight: 700; font-size: 1.2rem; margin-bottom: 1rem;">02. Build</div>
+                    <code style="background: var(--bg-color); padding: 0.5rem; display: block; border-radius: 4px; font-family: var(--font-mono); font-size: 0.8rem;">make</code>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-muted);">Compiles kernel & user programs</p>
+                </div>
+                <div style="background: var(--surface-color); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="color: var(--primary-color); font-weight: 700; font-size: 1.2rem; margin-bottom: 1rem;">03. Run</div>
+                    <code style="background: var(--bg-color); padding: 0.5rem; display: block; border-radius: 4px; font-family: var(--font-mono); font-size: 0.8rem;">make run</code>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-muted);">Launches QEMU instantly</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="roadmap">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <h2>🚀 Project Roadmap</h2>
+                <p>Join us in building the next features.</p>
+            </div>
+            <div class="roadmap-grid">
+                <div class="roadmap-card">
+                    <h3><span class="dot green"></span> Phase 1: Memory</h3>
+                    <p>Implementing a user-space <code>malloc</code> and <code>free</code> allocator for dynamic memory.</p>
+                    <span class="status-tag status-next">Next Up</span>
+                </div>
+                <div class="roadmap-card">
+                    <h3><span class="dot yellow"></span> Phase 2: Storage</h3>
+                    <p>Building a Virtual File System (VFS) with TAR RAM disk support to load files.</p>
+                    <span class="status-tag status-planned">Planned</span>
+                </div>
+                <div class="roadmap-card">
+                    <h3><span class="dot red"></span> Phase 3: Graphics</h3>
+                    <p>Transitioning from text mode to a VESA/VGA framebuffer for GUI applications.</p>
+                    <span class="status-tag status-planned">Planned</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Microkernel OS Project • MIT License • Built for Education</p>
+        </div>
+    </footer>
+
+    <script src="simulation.js"></script>
+    <script>
+        function showTab(tabName) {
+            // Hide all code blocks
+            document.getElementById('code-ipc').style.display = 'none';
+            document.getElementById('code-sched').style.display = 'none';
+            document.getElementById('code-sys').style.display = 'none';
+            
+            // Deactivate all tabs
+            const tabs = document.getElementsByClassName('tab');
+            for(let tab of tabs) {
+                tab.classList.remove('active');
+            }
+            
+            // Activate selected
+            document.getElementById('code-' + tabName).style.display = 'block';
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
