@@ -1,7 +1,15 @@
-# Build artifacts
+# Build Artifacts
+build/
 *.o
 *.elf
 *.iso
 
-# Build directory
-/build/-e "*.o\n*.elf\n*.iso\n/build/" 
+# Logs
+serial.log
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+.vscode/
