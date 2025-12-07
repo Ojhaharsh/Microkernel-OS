@@ -8,10 +8,11 @@ typedef void (*task_fn)(void*);
 
 // Basic process/task states for Week 4
 typedef enum {
-	TASK_READY = 0,
-	TASK_RUNNING = 1,
-	TASK_BLOCKED = 2,
-	TASK_EXITED = 3,
+	TASK_UNUSED = 0,
+	TASK_READY = 1,
+	TASK_RUNNING = 2,
+	TASK_BLOCKED = 3,
+	TASK_EXITED = 4,
 } task_state_t;
 
 void scheduler_init(void);
@@ -38,5 +39,8 @@ void sched_unblock(int task_id);
 
 // Terminate the current task and switch away
 void sched_exit_current(void);
+
+// Remove exited tasks from scheduler
+void sched_remove_exited(void);
 
 #endif // SCHEDULER_H

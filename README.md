@@ -4,8 +4,8 @@ A minimal **Microkernel Operating System** built from scratch for x86_64 archite
 
 > **Documentation Note 📚**
 >
-> *   **Architecture 🏗️** and **Technical Details ⚙️**: See [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md)
-> *   **Building and Running 🚀🏃🏼‍➡️** and **Usage 📝**: See [**docs/USAGE.md**](docs/USAGE.md)
+> *   **Architecture** and **Technical Details**: See [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md)
+> *   **Building and Running** and **Usage**: See [**docs/USAGE.md**](docs/USAGE.md)
 
 ## Features 👇🏼
 
@@ -159,14 +159,9 @@ This is an educational project. Feel free to use, modify, and learn from it.
 
 Built as a learning exercise to understand operating system internals from the ground up. Special thanks to the OSDev community for extensive documentation and support.
 
----
 
-**Status**: ✅ Complete - All core features implemented and tested
-**Last Updated**: December 2025
 
-```
-
-Notes:
-- Output is via serial (COM1), visible on your terminal. VGA remains minimal.
-- If you see GTK warnings from QEMU, they’re harmless; use headless mode to suppress.
-
+**Notes:**
+>
+> *  Output is via serial (COM1), visible on your terminal. VGA remains minimal.
+> *  If you see GTK warnings from QEMU, they’re harmless; use headless mode to suppress.
